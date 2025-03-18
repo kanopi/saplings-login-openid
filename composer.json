@@ -1,0 +1,16 @@
+{
+    "name": "kanopi/saplings-login-openid",
+    "description": "Configures OpenID for logging into Drupal.",
+    "type": "drupal-recipe",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Jim Birch",
+            "role": "Maintainer"
+        }
+    ],
+    "require": {
+        "drupal/core": ">=11.1",
+        "drupal/openid_connect": "^3.0@alpha",
+    }
+}

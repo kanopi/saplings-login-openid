@@ -1,0 +1,139 @@
+name: Saplings - OpenID Login
+description: 'Configures OpenID for logging into Drupal.'
+type: 'Site'
+install:
+  # Install core modules.
+  - views
+  # Install contrib modules.
+  - externalauth
+  - openid_connect
+# Ask for input from the recipe applier.
+input:
+  # Client type.
+  client_type:
+    data_type: string
+    description: 'The plugin that defines the OpenID client.'
+    prompt:
+      method: choice
+      arguments:
+        question: "Which service would you like to connect to?"
+        choices:
+          - facebook
+          - generic
+          - github
+          - google
+          - linkedin
+          - okta
+    constraints:
+      NotBlank: []
+    default:
+      source: value
+      value: ''
+    form:
+      # Select the client type.
+      '#type': radios
+      '#description': 'Please select the OpenID client type.'
+      '#title': 'Client type'
+      '#options':
+        facebook: Facebook
+        generic: Generic
+        github: GitHub
+        google: Google
+        linkedin: LinkedIn
+        okta: Okta
+  # Client Label.
+  client_label:
+    data_type: string
+    description: 'The human readable name of the client.'
+    prompt:
+      method: ask
+      arguments:
+        question: 'What would you like to name this client?'
+    constraints:
+      NotBlank: []
+    default:
+      source: value
+      value: ''
+    form:
+      '#type': 'textfield'
+      '#description': 'Please enter the name you would like for this client.'
+      '#title': 'Client Label'
+      '#required': true
+      '#maxlength': 256
+      '#attributes':
+        autocomplete: off
+  # Client ID.
+  client_id:
+    data_type: string
+    description: 'The ID of your OpenID client.'
+    prompt:
+      method: ask
+      arguments:
+        question: 'Please enter your OpenID client ID.'
+    constraints:
+      NotBlank: []
+    default:
+      source: value
+      value: ''
+    form:
+      '#type': 'textfield'
+      '#description': 'Please enter your OpenID client ID.'
+      '#title': 'Client ID'
+      '#required': true
+      '#maxlength': 256
+      '#attributes':
+        autocomplete: off
+  # Client Secret.
+  client_secret:
+    data_type: string
+    description: 'The secret of your OpenID client.'
+    prompt:
+      method: ask
+      arguments:
+        question: 'Please enter your OpenID client secret.'
+    constraints:
+      NotBlank: []
+    default:
+      source: value
+      value: ''
+    form:
+      '#type': 'textfield'
+      '#description': 'Please enter your OpenID client secret.'
+      '#title': 'Client secret'
+      '#required': true
+      '#maxlength': 256
+      '#attributes':
+        autocomplete: off
+config:
+  # Allow config import to continue if config already exists.
+  strict: false
+  # Import the optional view from the externalauth module.
+  import:
+    externalauth: '*'
+  actions:
+    # Add the OpenID login options below the login form.
+    openid_connect.settings:
+      simpleConfigUpdate:
+        user_login_display: below
+    # Create the OpenID client connection.
+    openid_connect.client.${client_type}:
+      createIfNotExists:
+        id: ${client_type}
+        plugin: ${client_type}
+      setMultiple:
+        - property_name: id
+          value: ${client_type}
+        - property_name: label
+          value: ${client_label}
+        - property_name: plugin
+          value: ${client_type}
+      # @TODO Replace simpleConfigUpdate with setNested when #3439713 is done.
+      simpleConfigUpdate:
+        settings.client_id: ${client_id}
+        settings.client_secret: ${client_secret}
+    # Add permission to any logged in user to make their own connections and
+    # manage their Drupal password as a fallback.
+    user.role.authenticated:
+      grantPermissions:
+        - 'manage own openid connect accounts'
+        - 'openid connect set own password'
